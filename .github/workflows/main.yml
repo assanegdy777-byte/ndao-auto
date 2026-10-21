@@ -29,51 +29,23 @@ jobs:
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || true
 
-      - name: 📦 Installer les outils de packaging mobile
+      - name: 📦 Installer les dépendances du projet
         run: |
           rm -f package-lock.json
-          npm install -g typescript @capacitor/cli
-          npm install --legacy-peer-deps --no-package-lock @capacitor/core @capacitor/android
+          npm install --legacy-peer-deps --no-audit --no-fund
+          npm install -g @capacitor/cli
+          npm install --legacy-peer-deps @capacitor/core @capacitor/android
 
-      - name: ⚡ Vérifier et compiler le projet
+      - name: ⚡ Compiler l'application React avec Vite
         run: |
-          # 1. Détection automatique si les fichiers sont dans un sous-dossier
-          if [ ! -f "package.json" ]; then
-            for dir in */; do
-              if [ -f "${dir}package.json" ]; then
-                echo "📁 Fichiers détectés dans le sous-dossier : $dir"
-                cp -rn "$dir"* . 2>/dev/null || true
-                break
-              fi
-            done
-          fi
+          npm run build || npx vite build
 
-          # 2. Configuration Capacitor automatique
-          if [ ! -f "capacitor.config.json" ]; then
-            echo '{"appId":"sn.ndaoauto.app","appName":"NDAO AUTO","webDir":"dist"}' > capacitor.config.json
-          fi
-
-          # 3. Compilation ou utilisation du dossier dist
-          if [ -f "scripts/build.js" ]; then
-            node scripts/build.js
-          elif [ -f "dist/index.html" ]; then
-            echo "✅ Dossier dist/ déjà présent et prêt."
-          else
-            echo "❌ Erreur : Fichiers du projet introuvables."
-            echo "Voici les fichiers actuellement présents sur votre dépôt :"
-            ls -la
-            exit 1
-          fi
-
-      - name: 📱 Initialiser et synchroniser le projet Android
+      - name: 📱 Générer et synchroniser le projet Android
         run: |
           if [ ! -d "android" ]; then
             npx cap add android
           fi
           npx cap sync android
-          if [ -d "assets/android" ]; then
-            cp -r assets/android/* android/app/src/main/res/ 2>/dev/null || true
-          fi
 
       - name: 🔨 Fabriquer le fichier APK avec Gradle
         working-directory: android
@@ -85,5 +57,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: NDAO-AUTO-Application-Android
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: |
+            android/app/build/outputs/apk/debug/*.apk
+            ndao-auto.apk
+            NDAO_AUTO.apk
           retention-days: 14
