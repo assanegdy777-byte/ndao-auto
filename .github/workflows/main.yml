@@ -31,8 +31,9 @@ jobs:
 
       - name: 📦 Installer les outils de packaging mobile
         run: |
-          npm install --save-dev typescript
-          npm install --save @capacitor/core @capacitor/cli @capacitor/android
+          rm -f package-lock.json
+          npm install -g typescript @capacitor/cli
+          npm install --legacy-peer-deps --no-package-lock @capacitor/core @capacitor/android
 
       - name: ⚡ Compiler le projet web
         run: |
