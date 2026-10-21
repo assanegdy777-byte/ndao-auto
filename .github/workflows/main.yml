@@ -35,11 +35,37 @@ jobs:
           npm install -g typescript @capacitor/cli
           npm install --legacy-peer-deps --no-package-lock @capacitor/core @capacitor/android
 
-      - name: ⚡ Compiler le projet web
+      - name: ⚡ Vérifier et compiler le projet
         run: |
-          node scripts/build.js
+          # 1. Détection automatique si les fichiers sont dans un sous-dossier
+          if [ ! -f "package.json" ]; then
+            for dir in */; do
+              if [ -f "${dir}package.json" ]; then
+                echo "📁 Fichiers détectés dans le sous-dossier : $dir"
+                cp -rn "$dir"* . 2>/dev/null || true
+                break
+              fi
+            done
+          fi
 
-      - name: 📱 Générer le projet natif Android
+          # 2. Configuration Capacitor automatique
+          if [ ! -f "capacitor.config.json" ]; then
+            echo '{"appId":"sn.ndaoauto.app","appName":"NDAO AUTO","webDir":"dist"}' > capacitor.config.json
+          fi
+
+          # 3. Compilation ou utilisation du dossier dist
+          if [ -f "scripts/build.js" ]; then
+            node scripts/build.js
+          elif [ -f "dist/index.html" ]; then
+            echo "✅ Dossier dist/ déjà présent et prêt."
+          else
+            echo "❌ Erreur : Fichiers du projet introuvables."
+            echo "Voici les fichiers actuellement présents sur votre dépôt :"
+            ls -la
+            exit 1
+          fi
+
+      - name: 📱 Initialiser et synchroniser le projet Android
         run: |
           if [ ! -d "android" ]; then
             npx cap add android
