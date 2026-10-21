@@ -1,0 +1,16 @@
+{
+  "appId": "sn.ndaoauto.app",
+  "appName": "NDAO'AUTO",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "android": {
+    "buildOptions": {
+      "keystorePath": "",
+      "releaseType": "APK"
+    }
+  }
+}

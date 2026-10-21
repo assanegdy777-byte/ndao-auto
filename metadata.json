@@ -1,0 +1,11 @@
+{
+  "name": "NDAO'AUTO - Véhicules au Sénégal",
+  "description": "Plateforme automobile officielle au Sénégal par Mouhamed Ndao. Vente de voitures, motos et tricycles en FCFA, annonces avec photos et vidéos, messagerie WhatsApp directe et espace propriétaire sécurisé.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
