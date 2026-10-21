@@ -1,0 +1,17 @@
+{
+  "name": "NDAO'AUTO - Sénégal",
+  "short_name": "NDAO'AUTO",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#071e26",
+  "theme_color": "#00c9a7",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
