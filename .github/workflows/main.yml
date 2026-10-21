@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: 20
 
-      - name: ☕ Configurer Java JDK 21 (Requis par Capacitor & Gradle 8.11)
+      - name: ☕ Configurer Java JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -77,11 +77,25 @@ jobs:
             cp -r assets/android/* android/app/src/main/res/ 2>/dev/null || true
           fi
 
-      - name: 🚀 Compiler l'APK Android avec Gradle (Java 21)
+      - name: 🛡️ Sécuriser la compatibilité Java (Double sécurité)
+        run: |
+          echo "=== VÉRIFICATION DE LA VERSION JAVA ==="
+          java -version
+          echo "org.gradle.java.home=$JAVA_HOME" >> android/gradle.properties
+
+          # Si le système est en Java 17, adapter automatiquement VERSION_21 en VERSION_17
+          JAVA_MAJOR=$(java -version 2>&1 | head -1 | cut -d'"' -f2 | sed 's/\..*//')
+          if [ "$JAVA_MAJOR" -lt 21 ]; then
+            echo "⚡ Adaptation automatique : passage de VERSION_21 à VERSION_17..."
+            find android/ -name "*.gradle" -exec sed -i 's/VERSION_21/VERSION_17/g' {} + 2>/dev/null || true
+            find node_modules/@capacitor/android/ -name "*.gradle" -exec sed -i 's/VERSION_21/VERSION_17/g' {} + 2>/dev/null || true
+          fi
+
+      - name: 🚀 Compiler l'APK Android avec Gradle
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug --no-daemon -Dorg.gradle.java.home="$JAVA_HOME"
 
       - name: 📤 Téléverser l'APK généré comme Artefact GitHub
         uses: actions/upload-artifact@v4
