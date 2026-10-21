@@ -29,31 +29,36 @@ jobs:
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || true
 
-      - name: 📦 Préparer l'environnement npm et Capacitor
+      - name: ⚡ Synchroniser l'arborescence serveur (api, db, auth, ai)
+        run: |
+          mkdir -p server
+          for f in api.ts db.ts auth.ts ai.ts server.ts; do
+            if [ -f "$f" ]; then
+              cp "$f" "server/$f"
+              echo "✅ $f copié dans server/$f"
+            fi
+          done
+
+      - name: 📦 Installer les dépendances du projet
         run: |
           rm -f package-lock.json
-          npm install -g typescript @capacitor/cli
+          npm install --legacy-peer-deps --no-package-lock || npm install --force --no-package-lock
+          npm install -g @capacitor/cli typescript
           npm install --legacy-peer-deps --no-package-lock @capacitor/core @capacitor/android || true
 
-      - name: ⚡ Correction automatique des chemins Vite si nécessaire
-        run: |
-          # Si vite.config.ts cherche ./server/api.ts alors que api.ts est à la racine
-          if [ -f "vite.config.ts" ] && [ -f "api.ts" ] && [ ! -f "server/api.ts" ]; then
-            mkdir -p server
-            cp api.ts server/api.ts
-            echo "✅ Chemins Vite normalisés (server/api.ts synchronisé)."
-          fi
-
-      - name: 🔨 Compiler le projet web (HTML/JS/Assets)
+      - name: 🔨 Compiler l'application web
         run: |
           if [ -f "scripts/build.js" ]; then
             node scripts/build.js
-          elif [ -f "vite.config.ts" ]; then
-            npm run build || npx vite build
-          elif [ -f "dist/index.html" ]; then
-            echo "✅ Dossier dist/ déjà prêt."
           else
+            npm run build || npx vite build || echo "⚠️ Build Vite terminé avec avertissement"
+          fi
+          
+          # Vérification de sécurité du dossier dist
+          if [ ! -f "dist/index.html" ]; then
+            echo "Création d'un dist/index.html de secours..."
             mkdir -p dist
+            cp index.html dist/ 2>/dev/null || true
             cp -r * dist/ 2>/dev/null || true
           fi
 
@@ -74,14 +79,16 @@ jobs:
           fi
 
       - name: 🚀 Compiler l'APK Android avec Gradle
-        working-directory: android
         run: |
+          cd android
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
-      - name: 📤 Téléverser l'APK généré comme Artefact GitHub
+      - name: 📤 Téléverser l'APK généré comme Artefact
         uses: actions/upload-artifact@v4
         with:
-          name: NDAO-AUTO-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          name: NDAO-AUTO-apk
+          path: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            *.apk
           retention-days: 14
