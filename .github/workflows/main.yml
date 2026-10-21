@@ -25,8 +25,9 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: 🤖 Installer le SDK Android
-        uses: android-actions/setup-android@v3
+      - name: 🤖 Valider les licences du SDK Android
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || true
 
       - name: 📦 Installer les outils de packaging mobile
         run: |
